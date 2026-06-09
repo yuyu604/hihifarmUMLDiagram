@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiHifarmECweb UML Diagram</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        blueberry: {
+                            50: '#f0f0fa',
+                            100: '#e1e0f5',
+                            200: '#c5c2ed',
+                            500: '#7c76cc',
+                            600: '#5c54a4',
+                            800: '#3b337c',
+                            900: '#231d4e',
+                        },
+                        organic: {
+                            50: '#f4f8f3',
+                            500: '#7a9d54',
+                            600: '#557a46',
+                            700: '#3f5e31',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        /* 定義 UML 關係線懸停動態效果 (Hover Effect) */
+        .uml-path {
+            transition: stroke 0.25s ease, stroke-width 0.25s ease, stroke-dasharray 0.25s ease, filter 0.25s ease;
+            pointer-events: stroke; /* 確保懸停事件精確觸發於線條上 */
+            cursor: pointer;
+            shape-rendering: geometricPrecision; /* 確保行動端抗鋸齒高畫質渲染 */
+        }
+        /* 懸停時同步加粗與變色 */
+        .uml-path:hover {
+            stroke: #ec4899 !important;
+            stroke-width: 3px !important;
+            filter: drop-shadow(0px 0px 3px rgba(236, 72, 153, 0.6));
+        }
+        
+        /* 懸停時動態替換對應的高亮關係 Marker (避免 SVG 繼承顏色限制) */
+        .uml-path-comp:hover {
+            marker-start: url(#arrow-comp-hover) !important;
+        }
+        .uml-path-aggr:hover {
+            marker-start: url(#arrow-aggr-hover) !important;
+        }
+        .uml-path-assoc:hover {
+            marker-end: url(#arrow-assoc-hover) !important;
+        }
+        .uml-path-general:hover {
+            marker-end: url(#arrow-general-hover) !important;
+        }
+        .uml-path-realization:hover {
+            marker-end: url(#arrow-general-hover) !important;
+        }
+
+        /* 滾動條樣式優化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- 全站頂部狀態欄 -->
+    <div class="bg-gradient-to-r from-blueberry-900 to-blueberry-800 text-white text-xs py-2 px-4 flex justify-between items-center shadow-inner">
+        <div class="flex items-center gap-2">
+            <span class="bg-organic-600 px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">SPEC REVISED</span>
+            <span>HiHi 農場數位藍圖：符合 6 大 UML 關係與視覺化卡片網站地圖規格 (v3.0.0)</span>
+        </div>
+        <div class="hidden md:flex gap-4 items-center">
+            <span>UML Version: 2.5 (視覺化卡片版)</span>
+            <span>|</span>
+            <span>Target Framework: React / Tailwind CSS</span>
+        </div>
+    </div>
+
+    <!-- 頁首導覽 -->
+    <header class="bg-white border-b border-slate-200 py-4 px-6 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blueberry-600 text-white p-2 rounded-xl shadow-md shadow-blueberry-200">
+                    
+                </div>
+                <div>
+                    
+                    <h1 class="text-xl font-black text-blueberry-900 flex items-center gap-2">
+                        HiHi 農場 
+                        <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-medium">UML 架構與視覺地圖版</span>
+                    </h1>
+                    <p class="text-xs text-slate-500">已優化：組成、聚合、關聯等 Marker 及全新視覺化 Tailwind CSS 卡片式 Sitemap</p>
+                </div>
+            </div>
+
+            <!-- 控制頁籤 -->
+            <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button onclick="switchTab('uml')" id="btn-tab-uml" class="tab-btn px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 bg-white text-blueberry-900 shadow-sm">
+                    <i data-lucide="network" class="w-4 h-4"></i>
+                    UML 類別關係圖
+                </button>
+                <button onclick="switchTab('sitemap')" id="btn-tab-sitemap" class="tab-btn px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                    <i data-lucide="git-merge" class="w-4 h-4"></i>
+                    網站地圖樹
+                </button>
+                <button onclick="switchTab('simulator')" id="btn-tab-simulator" class="tab-btn px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                    <i data-lucide="play-circle" class="w-4 h-4"></i>
+                    情境流程模擬
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主區塊 -->
+    <main class="flex-1 max-w-[1600px] w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- 左側/中間：圖表主畫布 -->
+        <div class="lg:col-span-3 flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm relative min-h-[650px]">
+            
+            <!-- 畫布頂部控制列 -->
+            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+                <div class="flex items-center gap-2 text-sm font-medium text-slate-600">
+                    <span id="canvas-title">UML 類別關係圖（點擊或滑鼠懸停於線條上查看加粗變色效果）</span>
+                    <span class="text-xs text-slate-400 hidden sm:inline">| 滾動可檢視完整架構</span>
+                </div>
+                <!-- 6大 UML 關係圖例說明 (使用完美比例與 clip-path) -->
+                <div id="uml-legend" class="flex flex-wrap gap-4 text-[11px] font-medium text-slate-500">
+                    <div class="flex items-center gap-1.5">
+                        <span class="inline-block w-3.5 h-3.5 bg-indigo-900 rotate-45 transform origin-center"></span> 組成 (Comp)
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="inline-block w-3 h-3 border-2 border-slate-600 bg-white rotate-45 transform origin-center"></span> 聚合 (Aggr)
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="inline-block w-4 h-0.5 bg-indigo-500"></span> 關聯 (Assoc)
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="inline-block w-4 h-0.5 border-t-2 border-dashed border-indigo-400"></span> 依賴 (Dep)
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="inline-block w-3.5 h-3 border border-indigo-500 bg-white" style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%);"></span> 繼承 (Gen)
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="inline-block w-3.5 h-3 border border-dashed border-indigo-500 bg-white" style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%);"></span> 實現 (Realize)
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. UML 類別圖畫布 -->
+            <div id="tab-content-uml" class="tab-pane flex-1 overflow-auto p-8 relative" style="min-height: 500px;">
+                <!-- 連接線 SVG 容器 -->
+                <svg id="svg-connections" class="absolute inset-0 pointer-events-none w-full h-full z-0" style="min-width: 1100px; min-height: 750px;"></svg>
+
+                <!-- UML 節點網格 -->
+                <div class="relative z-10 flex flex-col gap-12" style="min-width: 1050px;">
+                    
+                    <!-- 第一層：全站系統核心與狀態管理 -->
+                    <div class="flex justify-center">
+                        <div id="node-App" onclick="selectNode('App')" class="uml-node border-2 border-blueberry-800 bg-blueberry-50 w-80 rounded-lg shadow-md cursor-pointer transition-all duration-300 hover:scale-105">
+                            <div class="bg-blueberry-800 text-white p-2 font-bold text-center text-sm rounded-t flex justify-between items-center">
+                                <span>«Controller» HiHiFarmApp</span>
+                                <span class="text-[10px] bg-blueberry-600 px-1.5 py-0.5 rounded">Core</span>
+                            </div>
+                            <div class="p-2 text-xs font-mono space-y-1 bg-white border-b border-slate-100">
+                                <div class="text-slate-600 font-bold">+ rainyDayDiscountActive: Boolean</div>
+                                <div class="text-slate-600">+ appId: String = "hihi-farm"</div>
+                                <div class="text-slate-600">+ activeRoute: String = "home"</div>
+                                <div class="text-slate-600">+ cartState: CartState</div>
+                            </div>
+                            <div class="p-2 text-xs font-mono space-y-1 bg-slate-50 rounded-b">
+                                <div class="text-blueberry-800">+ initApp()</div>
+                                <div class="text-blueberry-800">+ checkWeatherStatus()</div>
+                                <div class="text-blueberry-800">+ switchRoute(routeId)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 第二層：主要視圖與功能區塊 -->
+                    <div class="grid grid-cols-4 gap-6">
+                        
+                        <!-- 首頁 -->
+                        <div id="node-Home" onclick="selectNode('Home')" class="uml-node border border-slate-300 bg-white rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:scale-105">
+                            <div class="bg-slate-800 text-white p-2 font-bold text-center text-xs rounded-t flex justify-between items-center">
+                                <span>HomeView (首頁)</span>
+                                <span class="text-[9px] bg-slate-600 px-1.5 py-0.5 rounded">View</span>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 border-b border-slate-100">
+                                <div>+ todayFreshCount: int</div>
+                                <div>+ countdownTimer: Timer</div>
+                                <div>+ heroBannerImage: URL</div>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 bg-slate-50 rounded-b">
+                                <div class="text-indigo-800">+ loadTodayStats()</div>
+                                <div class="text-indigo-800">+ handleAnchorScroll()</div>
+                            </div>
+                        </div>
+
+                        <!-- 品牌故事 -->
+                        <div id="node-About" onclick="selectNode('About')" class="uml-node border border-slate-300 bg-white rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:scale-105">
+                            <div class="bg-slate-800 text-white p-2 font-bold text-center text-xs rounded-t flex justify-between items-center">
+                                <span>AboutView (故事)</span>
+                                <span class="text-[9px] bg-slate-600 px-1.5 py-0.5 rounded">View</span>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 border-b border-slate-100">
+                                <div>+ farmIntroText: String</div>
+                                <div>+ bossPhilosophy: String</div>
+                                <div>+ diaryTimeline: List&lt;Diary&gt;</div>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 bg-slate-50 rounded-b">
+                                <div class="text-indigo-800">+ fetchFarmingDiaries()</div>
+                            </div>
+                        </div>
+
+                        <!-- 安心果物 -->
+                        <div id="node-Products" onclick="selectNode('Products')" class="uml-node border border-slate-300 bg-white rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:scale-105">
+                            <div class="bg-slate-800 text-white p-2 font-bold text-center text-xs rounded-t flex justify-between items-center">
+                                <span>ProductsView (果物)</span>
+                                <span class="text-[9px] bg-slate-600 px-1.5 py-0.5 rounded">View</span>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 border-b border-slate-100">
+                                <div>+ products: List&lt;Product&gt;</div>
+                                <div>+ activeCategory: String</div>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 bg-slate-50 rounded-b">
+                                <div class="text-indigo-800">+ filterCategory(catId)</div>
+                                <div class="text-indigo-800">+ openDetailModal(prodId)</div>
+                            </div>
+                        </div>
+
+                        <!-- 採果預約 (O2O核心) -->
+                        <div id="node-Booking" onclick="selectNode('Booking')" class="uml-node border border-organic-500 bg-organic-50 rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:scale-105">
+                            <div class="bg-organic-600 text-white p-2 font-bold text-center text-xs rounded-t flex justify-between items-center">
+                                <span>BookingView (採果)</span>
+                                <span class="text-[9px] bg-organic-700 px-1.5 py-0.5 rounded">O2O Component</span>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 border-b border-organic-100 bg-white">
+                                <div class="text-organic-700">+ rulesList: List</div>
+                                <div class="text-organic-700">+ mapLocation: Coord</div>
+                                <div class="text-organic-700">+ slotsAvailable: Map</div>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 bg-organic-50 rounded-b">
+                                <div class="text-organic-700">+ queryAvailableSlots()</div>
+                                <div class="text-organic-700">+ reserveSlot(date, time)</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 第三層：細部模組與功能處理器 -->
+                    <div class="grid grid-cols-4 gap-6">
+                        
+                        <!-- 表單提問 -->
+                        <div id="node-Contact" onclick="selectNode('Contact')" class="uml-node border border-slate-300 bg-white rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:scale-105">
+                            <div class="bg-slate-700 text-white p-2 font-bold text-center text-xs rounded-t">
+                                ContactForm (聯絡表單)
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 border-b border-slate-100">
+                                <div>+ name: String</div>
+                                <div>+ phone: String</div>
+                                <div class="text-organic-700">+ bookingDetails: Object</div>
+                                <div>+ content: Text</div>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 bg-slate-50 rounded-b">
+                                <div class="text-indigo-800">+ submitQuestionForm()</div>
+                                <div class="text-organic-600">+ fillFromBooking(slot)</div>
+                            </div>
+                        </div>
+
+                        <!-- FAQ 佈告欄 -->
+                        <div id="node-FAQ" onclick="selectNode('FAQ')" class="uml-node border border-slate-300 bg-white rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:scale-105">
+                            <div class="bg-slate-700 text-white p-2 font-bold text-center text-xs rounded-t">
+                                FAQBoard (問答看板)
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 border-b border-slate-100">
+                                <div>+ qnaList: List&lt;QA&gt;</div>
+                                <div>+ weatherAlert: String</div>
+                                <div>+ replyHistory: List</div>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 bg-slate-50 rounded-b">
+                                <div class="text-indigo-800">+ renderReplies()</div>
+                            </div>
+                        </div>
+
+                        <!-- 購物車核心 -->
+                        <div id="node-Cart" onclick="selectNode('Cart')" class="uml-node border-2 border-indigo-600 bg-indigo-50 rounded-lg shadow-md cursor-pointer transition-all duration-300 hover:scale-105">
+                            <div class="bg-indigo-600 text-white p-2 font-bold text-center text-xs rounded-t flex justify-between items-center">
+                                <span>CartController (購物車)</span>
+                                <span class="text-[9px] bg-indigo-800 px-1.5 py-0.5 rounded">Model</span>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 border-b border-indigo-100 bg-white">
+                                <div class="text-indigo-800">+ cartItems: List&lt;Item&gt;</div>
+                                <div class="text-indigo-800">+ shippingFee: int = 190</div>
+                                <div class="text-slate-500 italic">// 依賴全域 App 狀態判斷</div>
+                                <div class="text-indigo-800 font-bold">+ finalTotal: int</div>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 bg-slate-50 rounded-b">
+                                <div class="text-indigo-800">+ calculateTotal()</div>
+                                <div class="text-indigo-800">+ processLinePay()</div>
+                            </div>
+                        </div>
+
+                        <!-- 商品詳細頁 (由安心果物聚合) -->
+                        <div id="node-Detail" onclick="selectNode('Detail')" class="uml-node border border-slate-300 bg-white rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:scale-105">
+                            <div class="bg-slate-700 text-white p-2 font-bold text-center text-xs rounded-t">
+                                ProductDetailModal (詳細頁)
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 border-b border-slate-100">
+                                <div>+ activeProduct: Product</div>
+                                <div>+ quantitySelected: int</div>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 bg-slate-50 rounded-b">
+                                <div class="text-indigo-800">+ incrementQty()</div>
+                                <div class="text-indigo-800">+ commitAddToCart()</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 第四層：周邊支援模組 -->
+                    <div class="flex justify-around items-center pt-4">
+                        
+                        <!-- 線上客服系統 -->
+                        <div id="node-CS" onclick="selectNode('CS')" class="uml-node border border-slate-300 bg-white rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:scale-105 w-72">
+                            <div class="bg-slate-600 text-white p-2 font-bold text-center text-xs rounded-t">
+                                CustomerServiceWidget (客服)
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 border-b border-slate-100">
+                                <div>+ isOpen: Boolean</div>
+                                <div>+ messageHistory: List</div>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 bg-slate-50 rounded-b">
+                                <div class="text-indigo-800">+ toggleWidget()</div>
+                                <div class="text-indigo-800">+ sendMessage()</div>
+                            </div>
+                        </div>
+
+                        <!-- 頁尾 -->
+                        <div id="node-Footer" onclick="selectNode('Footer')" class="uml-node border border-slate-300 bg-white rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:scale-105 w-72">
+                            <div class="bg-slate-600 text-white p-2 font-bold text-center text-xs rounded-t">
+                                FooterView (全站頁尾)
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 border-b border-slate-100">
+                                <div>+ farmContactInfo: Object</div>
+                                <div>+ policyLinks: List&lt;Link&gt;</div>
+                            </div>
+                            <div class="p-2 text-[11px] font-mono space-y-0.5 bg-slate-50 rounded-b">
+                                <div class="text-indigo-800">+ handleExternalLink()</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 2. 視覺化卡片式 Sitemap 樹狀地圖 -->
+            <div id="tab-content-sitemap" class="tab-pane hidden flex-1 overflow-auto p-6 lg:p-10 bg-slate-50">
+                <div class="max-w-4xl mx-auto">
+                    <h3 class="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
+                        <div class="p-2 bg-blueberry-100 rounded-lg text-blueberry-600">
+                            <i data-lucide="folder-tree" class="w-6 h-6"></i>
+                        </div>
+                        HiHi 農場全站頁面與功能樹狀圖
+                    </h3>
+
+                    <!-- Root Node -->
+                    <div class="flex items-center gap-3 bg-blueberry-800 text-white px-5 py-3 rounded-xl shadow-md w-fit z-10 relative">
+                        <i data-lucide="globe" class="w-5 h-5 opacity-80"></i>
+                        <span class="font-bold tracking-wide">HiHi農場 主域名 (/)</span>
+                        <span class="text-[10px] bg-blueberry-600/60 px-2 py-0.5 rounded font-medium ml-2 border border-blueberry-500">Root Domain</span>
+                    </div>
+
+                    <!-- Children Container with Vertical Line -->
+                    <div class="ml-6 pl-8 py-4 border-l-2 border-dashed border-slate-300 space-y-8 relative">
+
+                        <!-- 1. Home Node -->
+                        <div class="relative">
+                            <div class="absolute -left-8 top-7 w-8 border-t-2 border-dashed border-slate-300"></div>
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all hover:border-blueberry-300 group relative z-10">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-slate-50 rounded-lg text-slate-500 group-hover:text-blueberry-600 group-hover:bg-blueberry-50 transition-colors">
+                                            <i data-lucide="home" class="w-5 h-5"></i>
+                                        </div>
+                                        <h4 class="font-bold text-slate-800 text-base">首頁 Home</h4>
+                                    </div>
+                                    <span class="text-[10px] px-2 py-1 rounded font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">View</span>
+                                </div>
+                                <ul class="text-[13px] text-slate-500 list-disc pl-5 space-y-1.5 leading-relaxed">
+                                    <li><strong class="text-slate-700 font-medium">最新公告：</strong>今日鮮採庫存 18 盒 / 早鳥預購倒數計時</li>
+                                    <li><strong class="text-slate-700 font-medium">視覺引導：</strong>品牌主視覺 Banner & 老闆理念引言</li>
+                                    <li><strong class="text-slate-700 font-medium">快速導覽：</strong>平滑滾動 (Smooth Scroll) 錨點連結</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 2. About Node -->
+                        <div class="relative">
+                            <div class="absolute -left-8 top-7 w-8 border-t-2 border-dashed border-slate-300"></div>
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all hover:border-blueberry-300 group relative z-10">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-slate-50 rounded-lg text-slate-500 group-hover:text-blueberry-600 group-hover:bg-blueberry-50 transition-colors">
+                                            <i data-lucide="book-open" class="w-5 h-5"></i>
+                                        </div>
+                                        <h4 class="font-bold text-slate-800 text-base">品牌故事 About</h4>
+                                    </div>
+                                    <span class="text-[10px] px-2 py-1 rounded font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">View</span>
+                                </div>
+                                <ul class="text-[13px] text-slate-500 list-disc pl-5 space-y-1.5 leading-relaxed">
+                                    <li><strong class="text-slate-700 font-medium">農場介紹：</strong>苗栗後龍大山環境與老闆栽培語錄</li>
+                                    <li><strong class="text-slate-700 font-medium">栽培紀錄：</strong>職人清晨手工採摘與白果粉保留技術說明</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 3. Products Node (Contains Detail Node) -->
+                        <div class="relative">
+                            <div class="absolute -left-8 top-7 w-8 border-t-2 border-dashed border-slate-300"></div>
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all hover:border-blueberry-300 group relative z-10">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-slate-50 rounded-lg text-slate-500 group-hover:text-blueberry-600 group-hover:bg-blueberry-50 transition-colors">
+                                            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                                        </div>
+                                        <h4 class="font-bold text-slate-800 text-base">安心果物 Products</h4>
+                                    </div>
+                                    <span class="text-[10px] px-2 py-1 rounded font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">View</span>
+                                </div>
+                                <ul class="text-[13px] text-slate-500 list-disc pl-5 space-y-1.5 leading-relaxed">
+                                    <li><strong class="text-slate-700 font-medium">智能過濾：</strong>商品分類篩選（全部商品、限時禮盒、果醬系列）</li>
+                                    <li><strong class="text-slate-700 font-medium">精選型錄：</strong>台灣藍莓(125g)、大果禮盒(6入)、手工果醬</li>
+                                </ul>
+                            </div>
+
+                            <!-- Sub-node: Product Detail Modal -->
+                            <div class="ml-6 pl-8 mt-5 border-l-2 border-dashed border-slate-300 space-y-5 relative">
+                                <div class="relative">
+                                    <div class="absolute -left-8 top-6 w-8 border-t-2 border-dashed border-slate-300"></div>
+                                    <div class="bg-indigo-50/50 rounded-xl shadow-sm border border-indigo-100 p-4 hover:shadow-md transition-all hover:border-indigo-300 group relative z-10">
+                                        <div class="flex justify-between items-start mb-3">
+                                            <div class="flex items-center gap-2">
+                                                <div class="p-1.5 bg-white rounded text-indigo-500 shadow-sm">
+                                                    <i data-lucide="zoom-in" class="w-4 h-4"></i>
+                                                </div>
+                                                <h5 class="font-bold text-indigo-900 text-sm">商品詳情彈窗 ProductDetail Modal</h5>
+                                            </div>
+                                            <span class="text-[9px] px-1.5 py-0.5 rounded font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wider">Modal View</span>
+                                        </div>
+                                        <ul class="text-xs text-slate-500 list-disc pl-5 space-y-1 leading-relaxed">
+                                            <li><strong class="text-indigo-800/80 font-medium">畫廊展示：</strong>大圖輪播展示與觸控手勢切換</li>
+                                            <li><strong class="text-indigo-800/80 font-medium">即時互動：</strong>購買數量增減，附帶精緻氣球掉落購物車動畫</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Booking Node (O2O) -->
+                        <div class="relative">
+                            <div class="absolute -left-8 top-7 w-8 border-t-2 border-dashed border-slate-300"></div>
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all hover:border-organic-400 group relative z-10">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-slate-50 rounded-lg text-slate-500 group-hover:text-organic-600 group-hover:bg-organic-50 transition-colors">
+                                            <i data-lucide="calendar-days" class="w-5 h-5"></i>
+                                        </div>
+                                        <h4 class="font-bold text-slate-800 text-base">採果預約 Booking</h4>
+                                    </div>
+                                    <span class="text-[10px] px-2 py-1 rounded font-bold bg-organic-100 text-organic-700 border border-organic-200 uppercase tracking-wider">O2O Component</span>
+                                </div>
+                                <ul class="text-[13px] text-slate-500 list-disc pl-5 space-y-1.5 leading-relaxed">
+                                    <li><strong class="text-slate-700 font-medium">實地指引：</strong>活動體驗指南與苗栗大山交通定位地圖</li>
+                                    <li><strong class="text-slate-700 font-medium">入園規範：</strong>無毒網室安全與蜜蜂授粉保護注意事項</li>
+                                    <li><strong class="text-organic-700 font-medium">即時查詢：</strong>動態採果剩餘空位查詢日曆，無縫傳遞資料至聯絡表單</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 5. Contact & FAQ -->
+                        <div class="relative">
+                            <div class="absolute -left-8 top-7 w-8 border-t-2 border-dashed border-slate-300"></div>
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all hover:border-blueberry-300 group relative z-10">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-slate-50 rounded-lg text-slate-500 group-hover:text-blueberry-600 group-hover:bg-blueberry-50 transition-colors">
+                                            <i data-lucide="message-square-text" class="w-5 h-5"></i>
+                                        </div>
+                                        <h4 class="font-bold text-slate-800 text-base">表單提問與問答 Contact & FAQ</h4>
+                                    </div>
+                                    <span class="text-[10px] px-2 py-1 rounded font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">View & Board</span>
+                                </div>
+                                <ul class="text-[13px] text-slate-500 list-disc pl-5 space-y-1.5 leading-relaxed">
+                                    <li><strong class="text-slate-700 font-medium">提問分流：</strong>互動諮詢表單 (支援線上訂購、採果、場地租借等類別分類)</li>
+                                    <li><strong class="text-slate-700 font-medium">同步看板：</strong>展示天候狀況公告及近期遊客提問回覆紀錄 (如農民收據開立)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 6. Cart Controller -->
+                        <div class="relative">
+                            <div class="absolute -left-8 top-7 w-8 border-t-2 border-dashed border-slate-300"></div>
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all hover:border-indigo-400 group relative z-10">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-slate-50 rounded-lg text-slate-500 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors">
+                                            <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                                        </div>
+                                        <h4 class="font-bold text-slate-800 text-base">購物車與結帳 Cart</h4>
+                                    </div>
+                                    <span class="text-[10px] px-2 py-1 rounded font-bold bg-indigo-100 text-indigo-700 border border-indigo-200 uppercase tracking-wider">Model & Drawer</span>
+                                </div>
+                                <ul class="text-[13px] text-slate-500 list-disc pl-5 space-y-1.5 leading-relaxed">
+                                    <li><strong class="text-indigo-700 font-medium">單一事實計價：</strong>依賴全站狀態進行「雨天應援 9 折自動計算」</li>
+                                    <li><strong class="text-slate-700 font-medium">運費管理：</strong>動態滿額免運進度條與冷藏宅配運費 ($190) 計算</li>
+                                    <li><strong class="text-slate-700 font-medium">無縫金流：</strong>整合 LINE Pay API，免手動回填轉帳末五碼提升轉換率</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- 7. Customer Service -->
+                        <div class="relative">
+                            <div class="absolute -left-8 top-7 w-8 border-t-2 border-dashed border-slate-300"></div>
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all hover:border-blueberry-300 group relative z-10">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-slate-50 rounded-lg text-slate-500 group-hover:text-blueberry-600 group-hover:bg-blueberry-50 transition-colors">
+                                            <i data-lucide="headset" class="w-5 h-5"></i>
+                                        </div>
+                                        <h4 class="font-bold text-slate-800 text-base">線上客服小幫手 CS Widget</h4>
+                                    </div>
+                                    <span class="text-[10px] px-2 py-1 rounded font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">Floating UI</span>
+                                </div>
+                                <ul class="text-[13px] text-slate-500 list-disc pl-5 space-y-1.5 leading-relaxed">
+                                    <li><strong class="text-slate-700 font-medium">常駐喚醒：</strong>位於網頁右下角的懸浮聊天室元件</li>
+                                    <li><strong class="text-slate-700 font-medium">智能服務：</strong>提供常用問題導讀按鈕，銜接即時專人客服回應</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 情境流程模擬器 -->
+            <div id="tab-content-simulator" class="tab-pane hidden flex-1 overflow-auto p-6 bg-slate-50">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- 模擬控制台 -->
+                    <div class="md:col-span-1 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+                                <i data-lucide="sliders" class="text-blueberry-600"></i>
+                                選擇模擬情境
+                            </h4>
+                            <p class="text-xs text-slate-500 mb-4">點擊下方按鈕以啟動互動流程模擬，網頁架構將會同步動態高亮展示控制流。</p>
+                            
+                            <div class="space-y-2">
+                                <button onclick="startFlow('order')" class="flow-btn w-full text-left p-3 rounded-lg border border-slate-200 hover:border-blueberry-500 hover:bg-blueberry-50 transition-all text-xs font-semibold flex items-center justify-between">
+                                    <span>🛒 鮮果/禮盒線上訂購金流</span>
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="startFlow('booking')" class="flow-btn w-full text-left p-3 rounded-lg border border-slate-200 hover:border-organic-500 hover:bg-organic-50 transition-all text-xs font-semibold flex items-center justify-between">
+                                    <span>📅 採果預約與 O2O 串聯</span>
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="startFlow('rainy')" class="flow-btn w-full text-left p-3 rounded-lg border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50 transition-all text-xs font-semibold flex items-center justify-between">
+                                    <span>☔ 雨天動態折扣突發行銷</span>
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 border-t pt-4">
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>目前步驟: <strong id="flow-step-num" class="text-blueberry-600">0 / 0</strong></span>
+                                <div class="flex gap-1">
+                                    <button onclick="prevStep()" class="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-50" id="btn-flow-prev" disabled>
+                                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="nextStep()" class="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-50" id="btn-flow-next" disabled>
+                                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 模擬步驟解說與時序 -->
+                    <div class="md:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-base font-bold text-slate-800 mb-2" id="flow-title">請在左側選擇一個情境開始</h4>
+                            <p class="text-xs text-slate-500 mb-4" id="flow-desc">啟動後，本面板將提供每個步驟的系統內部資料傳遞、狀態更新與實作指南。</p>
+                            
+                            <!-- 步驟詳細卡片 -->
+                            <div id="flow-detail-card" class="bg-slate-50 border border-slate-100 rounded-lg p-4 min-h-[180px] hidden">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="bg-blueberry-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold" id="detail-step-badge">1</span>
+                                    <h5 class="font-bold text-sm text-slate-800" id="detail-step-title">步驟名稱</h5>
+                                </div>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-4" id="detail-step-desc">步驟說明內容...</p>
+                                
+                                <div class="bg-white p-2.5 rounded border border-slate-200/60 font-mono text-[10px] text-indigo-900">
+                                    <div class="font-bold text-slate-500 uppercase tracking-wider mb-1 text-[9px]">資料傳遞 (Data Flow / Unified Call)</div>
+                                    <code id="detail-step-code">Object { ... }</code>
+                                </div>
+                            </div>
+
+                            <!-- 預設提示 -->
+                            <div id="flow-placeholder" class="flex flex-col items-center justify-center py-12 text-slate-300">
+                                <i data-lucide="play" class="w-12 h-12 stroke-[1] mb-2"></i>
+                                <span class="text-xs">等待情境啟動</span>
+                            </div>
+                        </div>
+
+                        <!-- 技術實現備註 -->
+                        <div class="mt-4 text-[11px] text-amber-700 bg-amber-50 border border-amber-100 p-2.5 rounded flex items-start gap-1.5">
+                            <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                            <span>注意：本架構優化版已將折扣狀態收斂至全域 App 控制中心，符合狀態管理「單一事實來源」原則。</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 右側：元件規格詳解面版 -->
+        <div class="lg:col-span-1 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+            <div id="spec-detail">
+                <div class="flex items-center gap-2 mb-4 border-b pb-3">
+                    <i data-lucide="cpu" class="text-blueberry-600"></i>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-800">類別規格規格書</h3>
+                        <p class="text-[10px] text-slate-400">點擊 UML 節點可載入開發詳情</p>
+                    </div>
+                </div>
+
+                <!-- 預設規格內容 (HiHiFarmApp) -->
+                <div id="spec-content">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-black text-blueberry-900" id="spec-name">HiHiFarmApp</span>
+                            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold" id="spec-type">Controller</span>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed" id="spec-desc">全站核心根控制器。負責全站初始化、路由控制（防重新載入的 RWD 單頁切換）、全域狀態分流，以及全站雨天折扣控制開關的唯一事實來源。</p>
+
+                        <!-- UI/UX 設計重點 -->
+                        <div>
+                            <span class="text-xs font-bold text-slate-700 block mb-1">💡 UI/UX 設計與體驗重點：</span>
+                            <ul class="text-xs text-slate-500 space-y-1 pl-4 list-disc" id="spec-ux">
+                                <li>全站狀態橫幅需常駐，動態傳遞每日庫存與行銷通知。</li>
+                                <li>必須在頁面載入時自動取得天候 API，判斷是否發送雨天應援。</li>
+                                <li>管理全站 Modal 的開閉與深淺色底遮罩，保證移動端順暢感。</li>
+                            </ul>
+                        </div>
+
+                        <!-- 狀態變數 / Methods -->
+                        <div>
+                            <span class="text-xs font-bold text-slate-700 block mb-1">🔧 核心狀態變數 (React State / Signal)：</span>
+                            <div class="bg-slate-50 p-2 rounded border border-slate-100 font-mono text-[10px] text-slate-600" id="spec-states">
+                                activeRoute: "home" | "booking" <br>
+                                cart: Array&lt;CartItem&gt;<br>
+                                rainyDayDiscountActive: Boolean = false (全域唯一事實)
+                            </div>
+                        </div>
+
+                        <!-- Firestore 資料庫路徑 (遵循 RULE 1) -->
+                        <div class="border-t pt-3">
+                            <span class="text-xs font-bold text-slate-700 block mb-1">🗄️ Firestore 資料路徑：</span>
+                            <code class="text-[10px] bg-slate-100 p-1 rounded font-mono text-indigo-700 break-all block" id="spec-db">
+                                /artifacts/hihi-farm/public/data/metadata
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 開發指引 / 防呆提醒 -->
+            <div class="mt-6 border-t pt-4 text-xs text-slate-400 space-y-2">
+                <div class="flex items-center gap-1.5 text-amber-600 font-medium">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span>目前為 Phase 2 架構規格</span>
+                </div>
+                <p class="text-[10px] text-slate-400 leading-normal">
+                    現階段 GitHub Pages 採用 Stage 1 靜態展示與模擬 Stub。本架構為 Phase 2 完整後端與資料庫銜接之技術規格書。
+                </p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="bg-white border-t border-slate-200 py-4 px-6 text-center text-xs text-slate-400">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span>© 2026 HiHi Farm. Built with Heart for Miaoli Houlong.</span>
+            <div class="flex gap-4">
+                <a href="#" class="hover:text-slate-600 transition-colors">系統規格書</a>
+                <span>·</span>
+                <a href="#" class="hover:text-slate-600 transition-colors">API 規範</a>
+                <span>·</span>
+                <a href="#" class="hover:text-slate-600 transition-colors">隱私與服務條款</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS 互動程式邏輯 -->
+    <script>
+        // 所有類別規格資料
+        const nodeSpecs = {
+            App: {
+                name: "HiHiFarmApp",
+                type: "Controller",
+                desc: "全站核心控制器與狀態管理中心。負責處理首網初始化、單頁錨點與次分頁路由轉向、全域購物車狀態變更、雨天天候 API 連線探針及全站動態折扣開關的唯一事實來源 (Single Source of Truth)。",
+                ux: [
+                    "全域狀態橫幅（公告欄）需常駐於視窗最上方，字體需清晰、對比度高。",
+                    "進入網頁時需使用非同步（Asynchronous）查詢天候資料，防畫面阻塞。",
+                    "管理購物車（Cart）之全域 State，當使用者在任何地方點擊「放進採果籃」時，需觸發側邊購物車滑出與微動畫."
+                ],
+                states: "activeRoute: string ('home' | 'products' | ...)\nallCartItems: List<CartItem>\nrainyDayDiscountActive: Boolean = false (全域唯一事實開關)\nisCartOpen: Boolean = false",
+                db: "/artifacts/hihi-farm/public/data/metadata"
+            },
+            Home: {
+                name: "HomeView (首頁)",
+                type: "View Component",
+                desc: "首頁視圖組件。包含最新公告（即時更新今日手工鮮採藍莓剩餘盒數與早鳥預購倒數）、首頁大視覺 Hero Banner、志偉老闆栽培語錄及快速導覽（Anchor滾動連結）。",
+                ux: [
+                    "最新公告中，今日剩餘盒數（18盒）建議使用鮮紅色、粗體呈現，並加上閃爍或緩緩呼吸動畫，製造限量完售緊湊感。",
+                    "倒數計時器（Timer）需在背景每秒計算，格式為 HH:MM:SS，時間到時自動更替早鳥文案。",
+                    "快速導覽連結點擊後，必須使用平滑滾動（CSS: smooth-scroll）滑到對應區塊。"
+                ],
+                states: "todayLeft: Number (預設 18)\ncountdownSeconds: Number = 9912\nheroImage: String (100% 寬度適配RWD)",
+                db: "/artifacts/hihi-farm/public/data/announcements"
+            },
+            About: {
+                name: "AboutView (品牌故事)",
+                type: "View Component",
+                desc: "品牌故事與老闆栽培日記頁面。以感性故事行銷、實體產地照片及栽培日記，建立消費者對「100% 台灣在地產、職人現摘、保留白果粉」的極度信任。",
+                ux: [
+                    "栽培日記採用垂直/水平動態時間軸，隨著頁面滾動漸進式載入（Fade-In）大山果園環境照，豐富故事層次。",
+                    "文字排版需有大量留白，行高（Line-height）設定為 1.75 - 1.8，適合家庭主婦與年長商務客輕鬆閱讀。"
+                ],
+                states: "farmingDiaries: Array<Diary>\nisBossCardExpanded: Boolean",
+                db: "/artifacts/hihi-farm/public/data/diaries"
+            },
+            Products: {
+                name: "ProductsView (安心果物)",
+                type: "View Component",
+                desc: "商品列表與分類導購核心頁。提供「全部商品」、「限時禮盒」、「無添加果醬」等篩選器，並以精美 RWD 網格展示商品卡片，支援加入購物車與點擊查看細節。",
+                ux: [
+                    "在行動裝置上，商品列表卡片應使用 1 欄或 2 欄自適應佈局，按鈕須確保手指輕鬆點擊（Tap Target 44px+）。",
+                    "每一件商品卡片最上方需有鮮明的 Badges 標籤，例如「每日限量」、「特選 18mm+ 大果」、「熱銷推薦」。"
+                ],
+                states: "categoryFilter: String ('all' | 'gift')\nproductsList: Array<Product>\nselectedProductId: String",
+                db: "/artifacts/hihi-farm/public/data/products"
+            },
+            Booking: {
+                name: "BookingView (採果預約)",
+                type: "O2O Component",
+                desc: "O2O（線上預約，線下體驗）預約組件。展示果園開放詳情、大山交流道附近定位導航、網室採果安全事項，並串接行事曆提供遊客即時剩餘名額查詢。預約成功後數據流向聯絡表單進行審核登記。",
+                ux: [
+                    "採果日曆中，不同預約狀態需有直覺的色塊提示，名額極少時（< 5人）自動改為醒目庫存標示「即將額滿」。",
+                    "當點擊預約特定時段時，系統會調用 `ContactForm` 預先帶入預約 slot 詳情，打造無縫 O2O 整合體驗。"
+                ],
+                states: "selectedDate: Date\navailableTimeSlots: Array<TimeSlot>\nreservedPersons: Number",
+                db: "/artifacts/hihi-farm/public/data/bookings"
+            },
+            Contact: {
+                name: "ContactForm (表單提問)",
+                type: "View Component",
+                desc: "遊客線上提問與預約審核提交表單。支援從 `BookingView` 自動填寫預約詳細資料，完成校驗後提交，數據寫入後台並通知 FAQ 看板同步狀態。",
+                ux: [
+                    "表單送出按鈕點擊後，必須使用 Loading 動畫防止使用者多次、重覆送出。",
+                    "送出表單成功後，彈出原生的、精緻的 Modal 小卡片（不可使用 Alert），告知小幫手即將回覆。"
+                ],
+                states: "formData: Object { name, phone, type, text }\nbookingDetails: Object (來自採果頁選取 slot)\nisSubmitting: Boolean = false",
+                db: "/artifacts/hihi-farm/public/data/feedbacks"
+            },
+            FAQ: {
+                name: "FAQBoard (問答看板)",
+                type: "View Component",
+                desc: "動態常客問答與天候狀況看板。解決消費者在採果前的核心痛點（例如下雨網室是否漏水、可否開立統編農民收據發票、取消預約退費規則等）。同時顯示最新的預約與諮詢反饋紀錄。",
+                ux: [
+                    "支援手琴式（Accordion）點擊展開與收合效果，減少頁面冗贅感。",
+                    "農場小幫手的回覆小框，需與使用者發問有明確的配色與頭像差異（如：農夫小幫手附有可愛的斗笠 Icon）。"
+                ],
+                states: "faqList: Array<FAQ>\nactiveQuestionId: String = null",
+                db: "/artifacts/hihi-farm/public/data/faqs"
+            },
+            Cart: {
+                name: "CartController (購物車與結帳)",
+                type: "Model & Component",
+                desc: "電商計價核心模組。管理購物車商品清單、冷藏宅配（常態 $190）累加、雨天回饋 9 折自動計算，並串接 LINE Pay API 進行一鍵金流支付。本組件之雨天折扣直接依賴全域 `HiHiFarmApp.rainyDayDiscountActive` 狀態。",
+                ux: [
+                    "側邊購物車抽屜提供極速展開（200ms），不打斷用戶瀏覽故事的節奏。",
+                    "購物車內明確告知「免回填轉帳帳號末五碼」，大大降低匯款對帳繁瑣感，提升付費意願。"
+                ],
+                states: "cartItemsList: Array<CartItem>\nsubtotalPrice: Number\nshippingFee: Number = 190\ntotalBill: Number (直接讀取 App.rainyDayDiscountActive 計算)",
+                db: "/artifacts/hihi-farm/users/{userId}/orders"
+            },
+            Detail: {
+                name: "ProductDetailModal (商品詳細頁)",
+                type: "View Component",
+                desc: "商品細部展示彈窗。當使用者在安心果物區點擊某個品項（如：藍莓大果禮盒）時，不跳頁直接滑入細節，顯示多張高清實拍大圖、規格說明、詳細無毒驗證與數量選擇器。",
+                ux: [
+                    "詳細頁最下方點擊「加入採果籃」時，需支援精緻的氣球/果實拋物線掉入購物車的動畫引導。",
+                    "支援左/右滑動手勢（Swipe）切換商品圖片，保障行動端使用流暢感。"
+                ],
+                states: "currentActiveProduct: Product\npurchasingQty: Number = 1",
+                db: "/artifacts/hihi-farm/public/data/products/{productId}"
+            },
+            CS: {
+                name: "CustomerServiceWidget (線上客服)",
+                type: "Floating Component",
+                desc: "全站浮動式客服小幫手聊天視窗。提供週三、四隱倉咖啡店休時或農夫巡田時的即時線上智能回覆與 LINE 官方客服無縫導流。",
+                ux: [
+                    "在行動裝置上，懸浮按鈕需避開主要操作按鈕區（如購物車、結帳按鈕），防止大拇指誤觸。",
+                    "聊天室視窗內設有預設導讀按鈕（例如：「我想了解採果開放時間」、「請問如何付費」），免除打字辛勞。"
+                ],
+                states: "isChatBoxOpen: Boolean = false\nchatHistory: Array<Message>",
+                db: "/artifacts/hihi-farm/users/{userId}/chat"
+            },
+            Footer: {
+                name: "FooterView (全站頁尾)",
+                type: "View Component",
+                desc: "全站底層資訊面板。提供明確的營業地址（地圖）、社群管道（FB、LINE 官方帳號）、栽培常見 FAQ 及「隱私權條款」、「防詐騙聲明」、「物流退換貨政策」等合法權益資訊。",
+                ux: [
+                    "排列結構清晰、分成 3 到 4 欄適配寬螢幕；行動裝置自動轉化為可折疊的項目清單。",
+                    "Facebook 與 LINE 等社群 icon 需足夠顯眼，吸引使用者點擊加入常態社群，方便未來再行銷。"
+                ],
+                states: "contactData: Object\nshowFraudWarningModal: Boolean = false",
+                db: "/artifacts/hihi-farm/public/data/metadata"
+            }
+        };
+
+        // 選擇指定的 UML 節點並更新規格書
+        function selectNode(nodeId) {
+            // 移除所有節點的 active border
+            document.querySelectorAll('.uml-node').forEach(el => {
+                el.classList.remove('ring-4', 'ring-amber-400', 'scale-105');
+            });
+            
+            // 加入當前節點的高亮 (使用標準模板字面值)
+            const activeNode = document.getElementById(`node-${nodeId}`);
+            if (activeNode) {
+                activeNode.classList.add('ring-4', 'ring-amber-400', 'scale-105');
+            }
+
+            // 更新規格書
+            const spec = nodeSpecs[nodeId];
+            if (spec) {
+                document.getElementById('spec-name').innerText = spec.name;
+                document.getElementById('spec-type').innerText = spec.type;
+                document.getElementById('spec-desc').innerText = spec.desc;
+                
+                // UX 重點項目
+                const uxContainer = document.getElementById('spec-ux');
+                uxContainer.innerHTML = '';
+                spec.ux.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerText = item;
+                    uxContainer.appendChild(li);
+                });
+
+                document.getElementById('spec-states').innerText = spec.states;
+                document.getElementById('spec-db').innerText = spec.db;
+            }
+        }
+
+        // 切換頁籤 (修復 tabId 變數拼寫、比較運算子及插值轉義問題)
+        function switchTab(tabId) {
+            // 1. 切換按鈕樣式
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900";
+            });
+            const activeBtn = document.getElementById(`btn-tab-${tabId}`);
+            if (activeBtn) {
+                activeBtn.className = "tab-btn px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 bg-white text-blueberry-900 shadow-sm";
+            }
+
+            // 2. 切換視圖內容
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.add('hidden');
+            });
+            
+            const targetPane = document.getElementById(`tab-content-${tabId}`);
+            if (targetPane) {
+                targetPane.classList.remove('hidden');
+            }
+
+            // 3. 更改畫布頂部標題
+            const titleEl = document.getElementById('canvas-title');
+            const legendEl = document.getElementById('uml-legend');
+            
+            if (tabId === 'uml') {
+                titleEl.innerText = "UML 類別關係圖（點擊或滑鼠懸停於線條上查看加粗變色效果）";
+                legendEl.classList.remove('hidden');
+                // 重新計算並繪製線條
+                setTimeout(drawConnections, 100);
+            } else if (tabId === 'sitemap') {
+                titleEl.innerText = "網站全站地圖（視覺化卡片樹狀結構）";
+                legendEl.classList.add('hidden');
+            } else if (tabId === 'simulator') {
+                titleEl.innerText = "互動式使用者情境流程模擬面板";
+                legendEl.classList.add('hidden');
+            }
+        }
+
+        // --- UML 連接線繪製邏輯 (修復驚嘆號、關係方向與 Marker 參數重構) ---
+        function drawConnections() {
+            const svg = document.getElementById('svg-connections');
+            // 修正守衛判定：如果找不到 SVG 容器則返回
+            if (!svg) return; 
+            
+            svg.innerHTML = ''; // 清空舊連接線
+
+            // 1. 定義高畫質 marker 定義與高亮 hover markers
+            const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+            
+            // [關聯/依賴 箭頭] (標準 & 高亮)
+            const markerAssoc = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            markerAssoc.setAttribute("id", "arrow-assoc");
+            markerAssoc.setAttribute("viewBox", "0 0 10 10");
+            markerAssoc.setAttribute("refX", "9"); // 尖端精確對齊，防止刺入邊框
+            markerAssoc.setAttribute("refY", "5");
+            markerAssoc.setAttribute("markerWidth", "6");
+            markerAssoc.setAttribute("markerHeight", "6");
+            markerAssoc.setAttribute("orient", "auto-start-reverse");
+            const pathAssoc = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathAssoc.setAttribute("d", "M 1 2 L 9 5 L 1 8");
+            pathAssoc.setAttribute("fill", "none");
+            pathAssoc.setAttribute("stroke", "#6366f1");
+            pathAssoc.setAttribute("stroke-width", "1.5");
+            pathAssoc.setAttribute("stroke-linecap", "round");
+            pathAssoc.setAttribute("stroke-linejoin", "round");
+            markerAssoc.appendChild(pathAssoc);
+            defs.appendChild(markerAssoc);
+
+            const markerAssocHover = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            markerAssocHover.setAttribute("id", "arrow-assoc-hover");
+            markerAssocHover.setAttribute("viewBox", "0 0 10 10");
+            markerAssocHover.setAttribute("refX", "9");
+            markerAssocHover.setAttribute("refY", "5");
+            markerAssocHover.setAttribute("markerWidth", "6");
+            markerAssocHover.setAttribute("markerHeight", "6");
+            markerAssocHover.setAttribute("orient", "auto-start-reverse");
+            const pathAssocHover = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathAssocHover.setAttribute("d", "M 1 2 L 9 5 L 1 8");
+            pathAssocHover.setAttribute("fill", "none");
+            pathAssocHover.setAttribute("stroke", "#ec4899"); // 玫瑰紅高亮
+            pathAssocHover.setAttribute("stroke-width", "2.5");
+            pathAssocHover.setAttribute("stroke-linecap", "round");
+            pathAssocHover.setAttribute("stroke-linejoin", "round");
+            markerAssocHover.appendChild(pathAssocHover);
+            defs.appendChild(markerAssocHover);
+
+            // [繼承/實現 空心三角形] (標準 & 高亮)
+            const markerGen = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            markerGen.setAttribute("id", "arrow-general");
+            markerGen.setAttribute("viewBox", "0 0 12 12");
+            markerGen.setAttribute("refX", "11");
+            markerGen.setAttribute("refY", "6");
+            markerGen.setAttribute("markerWidth", "8");
+            markerGen.setAttribute("markerHeight", "8");
+            markerGen.setAttribute("orient", "auto-start-reverse");
+            const pathGen = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathGen.setAttribute("d", "M 1 2 L 11 6 L 1 10 Z");
+            pathGen.setAttribute("fill", "white");
+            pathGen.setAttribute("stroke", "#6366f1");
+            pathGen.setAttribute("stroke-width", "1.5");
+            pathGen.setAttribute("stroke-linejoin", "round");
+            markerGen.appendChild(pathGen);
+            defs.appendChild(markerGen);
+
+            const markerGenHover = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            markerGenHover.setAttribute("id", "arrow-general-hover");
+            markerGenHover.setAttribute("viewBox", "0 0 12 12");
+            markerGenHover.setAttribute("refX", "11");
+            markerGenHover.setAttribute("refY", "6");
+            markerGenHover.setAttribute("markerWidth", "8");
+            markerGenHover.setAttribute("markerHeight", "8");
+            markerGenHover.setAttribute("orient", "auto-start-reverse");
+            const pathGenHover = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathGenHover.setAttribute("d", "M 1 2 L 11 6 L 1 10 Z");
+            pathGenHover.setAttribute("fill", "white");
+            pathGenHover.setAttribute("stroke", "#ec4899"); // 玫瑰紅高亮
+            pathGenHover.setAttribute("stroke-width", "2");
+            pathGenHover.setAttribute("stroke-linejoin", "round");
+            markerGenHover.appendChild(pathGenHover);
+            defs.appendChild(markerGenHover);
+
+            // [組成 實心菱形] (標準 & 高亮)
+            const markerComp = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            markerComp.setAttribute("id", "arrow-comp");
+            markerComp.setAttribute("viewBox", "0 0 16 16");
+            markerComp.setAttribute("refX", "0");
+            markerComp.setAttribute("refY", "8");
+            markerComp.setAttribute("markerWidth", "10");
+            markerComp.setAttribute("markerHeight", "10");
+            markerComp.setAttribute("orient", "auto-start-reverse");
+            const pathComp = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathComp.setAttribute("d", "M 0 8 L 8 2 L 16 8 L 8 14 Z"); // 對稱菱形，防止形變
+            pathComp.setAttribute("fill", "#3b337c");
+            markerComp.appendChild(pathComp);
+            defs.appendChild(markerComp);
+
+            const markerCompHover = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            markerCompHover.setAttribute("id", "arrow-comp-hover");
+            markerCompHover.setAttribute("viewBox", "0 0 16 16");
+            markerCompHover.setAttribute("refX", "0");
+            markerCompHover.setAttribute("refY", "8");
+            markerCompHover.setAttribute("markerWidth", "10");
+            markerCompHover.setAttribute("markerHeight", "10");
+            markerCompHover.setAttribute("orient", "auto-start-reverse");
+            const pathCompHover = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathCompHover.setAttribute("d", "M 0 8 L 8 2 L 16 8 L 8 14 Z");
+            pathCompHover.setAttribute("fill", "#ec4899");
+            markerCompHover.appendChild(pathCompHover);
+            defs.appendChild(markerCompHover);
+
+            // [聚合 空心菱形] (標準 & 高亮)
+            const markerAggr = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            markerAggr.setAttribute("id", "arrow-aggr");
+            markerAggr.setAttribute("viewBox", "0 0 16 16");
+            markerAggr.setAttribute("refX", "0");
+            markerAggr.setAttribute("refY", "8");
+            markerAggr.setAttribute("markerWidth", "10");
+            markerAggr.setAttribute("markerHeight", "10");
+            markerAggr.setAttribute("orient", "auto-start-reverse");
+            const pathAggr = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathAggr.setAttribute("d", "M 0 8 L 8 2 L 16 8 L 8 14 Z");
+            pathAggr.setAttribute("fill", "white");
+            pathAggr.setAttribute("stroke", "#475569");
+            pathAggr.setAttribute("stroke-width", "2");
+            markerAggr.appendChild(pathAggr);
+            defs.appendChild(markerAggr);
+
+            const markerAggrHover = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            markerAggrHover.setAttribute("id", "arrow-aggr-hover");
+            markerAggrHover.setAttribute("viewBox", "0 0 16 16");
+            markerAggrHover.setAttribute("refX", "0");
+            markerAggrHover.setAttribute("refY", "8");
+            markerAggrHover.setAttribute("markerWidth", "10");
+            markerAggrHover.setAttribute("markerHeight", "10");
+            markerAggrHover.setAttribute("orient", "auto-start-reverse");
+            const pathAggrHover = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathAggrHover.setAttribute("d", "M 0 8 L 8 2 L 16 8 L 8 14 Z");
+            pathAggrHover.setAttribute("fill", "white");
+            pathAggrHover.setAttribute("stroke", "#ec4899");
+            pathAggrHover.setAttribute("stroke-width", "2.5");
+            markerAggrHover.appendChild(pathAggrHover);
+            defs.appendChild(markerAggrHover);
+
+            svg.appendChild(defs);
+
+            // 2. 六大 UML 關係連線架構定義
+            const connections = [
+                // 組成 (Composition): App 持有視圖
+                { from: "App", to: "Home", type: "composition" },
+                { from: "App", to: "About", type: "composition" },
+                { from: "App", to: "Products", type: "composition" },
+                { from: "App", to: "Booking", type: "composition" },
+                { from: "App", to: "Cart", type: "composition" }, 
+
+                // 關聯 (Association): 首頁跳轉及體驗流程
+                { from: "Home", to: "About", type: "association" },
+                { from: "Home", to: "Products", type: "association" },
+                { from: "Home", to: "Booking", type: "association" },
+                { from: "Home", to: "Contact", type: "association" },
+
+                // 聚合 (Aggregation): 商品列表持有細節 Modal (空心菱形在 Products 側)
+                { from: "Products", to: "Detail", type: "aggregation" },
+                
+                // 依賴 (Dependency): 細節相依於購物車操作 (簡單箭頭帶虛線)
+                { from: "Detail", to: "Cart", type: "dependency" },
+
+                // 實體 O2O 體驗流關聯與閉環 (Association)
+                { from: "Booking", to: "Contact", type: "association" }, 
+                { from: "Contact", to: "FAQ", type: "association" },     
+                { from: "Booking", to: "FAQ", type: "association" },
+
+                // 繼承 (Generalization): FAQ 繼承自基礎資訊視圖 (AboutView) (空心三角形)
+                { from: "FAQ", to: "About", type: "generalization" },
+
+                // 實現 (Realization): 線上客服實現 FAQ 的應答協議 (空心三角形帶虛線)
+                { from: "CS", to: "FAQ", type: "realization" }
+            ];
+
+            const container = document.getElementById('tab-content-uml');
+
+            connections.forEach(conn => {
+                const fromEl = document.getElementById(`node-${conn.from}`);
+                const toEl = document.getElementById(`node-${conn.to}`);
+
+                if (fromEl && toEl) {
+                    const fromRect = fromEl.getBoundingClientRect();
+                    const toRect = toEl.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+
+                    // 相對畫布座標計算
+                    const f = {
+                        x: fromRect.left - containerRect.left + container.scrollLeft,
+                        y: fromRect.top - containerRect.top + container.scrollTop,
+                        w: fromRect.width,
+                        h: fromRect.height
+                    };
+                    const t = {
+                        x: toRect.left - containerRect.left + container.scrollLeft,
+                        y: toRect.top - containerRect.top + container.scrollTop,
+                        w: toRect.width,
+                        h: toRect.height
+                    };
+
+                    const fCenter = { x: f.x + f.w/2, y: f.y + f.h/2 };
+                    const tCenter = { x: t.x + t.w/2, y: t.y + t.h/2 };
+
+                    let start = { x: fCenter.x, y: fCenter.y };
+                    let end = { x: tCenter.x, y: tCenter.y };
+
+                    // 加寬防呆間距 (Padding) 防止 Marker 覆蓋卡片邊框
+                    const padding = 5;
+                    if (Math.abs(fCenter.x - tCenter.x) > Math.abs(fCenter.y - tCenter.y)) {
+                        if (fCenter.x < tCenter.x) {
+                            start = { x: f.x + f.w + padding, y: fCenter.y };
+                            end = { x: t.x - padding, y: tCenter.y };
+                        } else {
+                            start = { x: f.x - padding, y: fCenter.y };
+                            end = { x: t.x + t.w + padding, y: tCenter.y };
+                        }
+                    } else {
+                        if (fCenter.y < tCenter.y) {
+                            start = { x: fCenter.x, y: f.y + f.h + padding };
+                            end = { x: tCenter.x, y: t.y - padding };
+                        } else {
+                            start = { x: fCenter.x, y: f.y - padding };
+                            end = { x: tCenter.x, y: t.y + t.h + padding };
+                        }
+                    }
+
+                    // 繪製貝茲曲線 (Bezier Curve)
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    let d;
+                    const dx = (end.x - start.x) * 0.4;
+                    const dy = (end.y - start.y) * 0.4;
+
+                    if (Math.abs(end.x - start.x) > Math.abs(end.y - start.y)) {
+                        d = `M ${start.x} ${start.y} C ${start.x + dx} ${start.y}, ${end.x - dx} ${end.y}, ${end.x} ${end.y}`;
+                    } else {
+                        d = `M ${start.x} ${start.y} C ${start.x} ${start.y + dy}, ${end.x} ${end.y - dy}, ${end.x} ${end.y}`;
+                    }
+
+                    path.setAttribute("d", d);
+                    path.setAttribute("fill", "none");
+
+                    // 3. 依據關係種類，套用精準的 RWD 樣式與動畫 Marker
+                    if (conn.type === "composition") {
+                        path.setAttribute("class", "uml-path uml-path-comp");
+                        path.setAttribute("stroke", "#3b337c");
+                        path.setAttribute("stroke-width", "2");
+                        path.setAttribute("marker-start", "url(#arrow-comp)");
+                    } else if (conn.type === "aggregation") {
+                        path.setAttribute("class", "uml-path uml-path-aggr");
+                        path.setAttribute("stroke", "#475569");
+                        path.setAttribute("stroke-width", "2");
+                        path.setAttribute("marker-start", "url(#arrow-aggr)");
+                    } else if (conn.type === "association") {
+                        path.setAttribute("class", "uml-path uml-path-assoc");
+                        path.setAttribute("stroke", "#6366f1");
+                        path.setAttribute("stroke-width", "1.5");
+                        path.setAttribute("marker-end", "url(#arrow-assoc)");
+                    } else if (conn.type === "dependency") {
+                        path.setAttribute("class", "uml-path uml-path-assoc");
+                        path.setAttribute("stroke", "#4f46e5");
+                        path.setAttribute("stroke-width", "1.5");
+                        path.setAttribute("stroke-dasharray", "6, 4"); // 於行動端依然清晰的虛線比例
+                        path.setAttribute("marker-end", "url(#arrow-assoc)");
+                    } else if (conn.type === "generalization") {
+                        path.setAttribute("class", "uml-path uml-path-general");
+                        path.setAttribute("stroke", "#6366f1");
+                        path.setAttribute("stroke-width", "1.5");
+                        path.setAttribute("marker-end", "url(#arrow-general)");
+                    } else if (conn.type === "realization") {
+                        path.setAttribute("class", "uml-path uml-path-realization");
+                        path.setAttribute("stroke", "#4f46e5");
+                        path.setAttribute("stroke-width", "1.5");
+                        path.setAttribute("stroke-dasharray", "6, 4");
+                        path.setAttribute("marker-end", "url(#arrow-general)");
+                    }
+
+                    svg.appendChild(path);
+                }
+            });
+        }
+
+        // 監聽重置視窗以重新繪製線條
+        window.addEventListener('resize', () => {
+            const currentTab = document.querySelector('.tab-btn.bg-white');
+            if (currentTab && currentTab.id === 'btn-tab-uml') {
+                drawConnections();
+            }
+        });
+
+        // 頁面初次載入
+        window.onload = function() {
+            lucide.createIcons();
+            selectNode('App'); // 預設選擇 APP
+            setTimeout(drawConnections, 200); // 延遲讓 DOM 高度完成後繪製
+        }
+
+
+        // --- 優化與修復後的流程模擬器 ---
+        const flows = {
+            order: {
+                title: "🛒 鮮果與禮盒線上訂購金流",
+                desc: "模擬使用者如何從進站、查看商品、開箱禮盒、加購商品到最終使用 LINE Pay 結帳的完整數據與邏輯流通流程。",
+                steps: [
+                    {
+                        title: "1. 觸發首頁最新公告",
+                        node: "Home",
+                        desc: "遊客進入首頁，由 HomeView 渲染今日手工鮮採剩餘盒數及預購倒數，勾起消費動機。隨後點擊「安心果物」導引連結。",
+                        code: "HomeView.handleAnchorScroll('#products') -> routeState = 'products'"
+                    },
+                    {
+                        title: "2. 載入果物列表與過濾分類",
+                        node: "Products",
+                        desc: "切換到 ProductsView 視圖，從 Firestore 快取中取得完熟新鮮藍莓、禮盒與果醬商品清單，預設過濾為 '全部商品'。",
+                        code: "ProductsView.filterCategory('all') -> state.activeProducts"
+                    },
+                    {
+                        title: "3. 打開巨無霸藍莓禮盒詳細頁",
+                        node: "Detail",
+                        desc: "使用者點擊「藍莓大果禮盒 (6入)」，開啟 ProductDetailModal。展示 18mm+ 特選細部大圖與職人手提包裝說明，並設定數量為 2 盒。",
+                        code: "ProductDetailModal.open(productId: 'blueberry-big-box') -> purchaseQty = 2"
+                    },
+                    {
+                        title: "4. 放進採果籃 (加入購物車)",
+                        node: "Cart",
+                        desc: "點擊加入購物車按鈕。觸發 CartController 新增項目，扣除預設庫存、加載常態冷藏運費 $190、並即時計算總金額。",
+                        code: "CartController.addToCart({id: 'blueberry-big-box', qty: 2}) -> totalBill = (1200 * 2) + 190 = 2590"
+                    },
+                    {
+                        title: "5. 免手動對帳一鍵結帳",
+                        node: "Cart",
+                        desc: "購物車抽屜滑出，點擊結帳。呼叫 CartController.processLinePay()，整合 LINE Pay 付款，下單成功後即時鎖定大山農場冷藏庫存量。",
+                        code: "CartController.processLinePay() -> API.post('/payments/linepay') -> db.updateInventory()"
+                    }
+                ]
+            },
+            booking: {
+                title: "📅 採果預約與 O2O 體驗閉環",
+                desc: "模擬週末遊客線上預約苗栗大山無毒網室果園，並串聯預約表單及 FAQ 看板，保障數據流動一致性。",
+                steps: [
+                    {
+                        title: "1. 進入採果預約功能區",
+                        node: "Booking",
+                        desc: "使用者點擊導航「採果預約」抵達 BookingView。畫面渲染出無毒網室、保護授粉蜜蜂等安全入園規章與大山交流道附近地圖指引。",
+                        code: "BookingView.init() -> loadSafetyRules() & renderMap()"
+                    },
+                    {
+                        title: "2. 即時空位與場次日曆查詢",
+                        node: "Booking",
+                        desc: "點擊日曆中的特定週六時段，BookingView 自動向 Firestore 發出簡單即時查詢，取得剩餘入園採果人頭空額，並在 UI 渲染警告提示。",
+                        code: "BookingView.queryAvailableSlots(date: '2026-06-13') -> slotsLeft: 3 -> UI: '⚠️ 僅剩3個名額'"
+                    },
+                    {
+                        title: "3. 攜帶預約時段填寫表單",
+                        node: "Contact",
+                        desc: "遊客點擊確認預約，頁面無縫喚起 ContactForm。系統自動傳遞預選的時段與名額資料（呼叫 fillFromBooking），遊客僅需填入基本姓名、電話即可送出。",
+                        code: "ContactForm.fillFromBooking(selectedSlot) -> bookingDetails = {date: '06-13', qty: 2}"
+                    },
+                    {
+                        title: "4. 送出表單並同步至問答看板",
+                        node: "Contact",
+                        desc: "使用者點擊送出。ContactForm 發起完整性校驗與防多次重送鎖定。提交成功後，本地快取資料庫狀態更新，並發送非同步通知更新 FAQBoard。",
+                        code: "ContactForm.submitQuestionForm() -> isSubmitting = true -> db.write('/feedbacks')"
+                    },
+                    {
+                        title: "5. FAQ 看板生成動態回覆歷史",
+                        node: "FAQ",
+                        desc: "FAQBoard 監聽到資料庫異動，即時將這筆預約寫入「近期提問回覆看板」，標記為預約待審核，完成 O2O 整體體驗閉環。",
+                        code: "FAQBoard.renderReplies() -> db.onSnapshot('/feedbacks') -> UI.appendHistory()"
+                    }
+                ]
+            },
+            rainy: {
+                title: "☔ 雨天動態折扣突發行銷 (單一事實來源)",
+                desc: "模擬大自然氣象突變，全域感知天氣狀態後，購物車統一依據 App 核心控制器的單一開關計算 9 折優惠，拒絕重複狀態衝突。",
+                steps: [
+                    {
+                        title: "1. 氣候探針感知下大雨",
+                        node: "App",
+                        desc: "HiHiFarmApp 控制中心向苗栗大山當地的即時氣候 API 進行感知檢查。檢測到下雨後，將全域折扣開關 `rainyDayDiscountActive` 設為 True。",
+                        code: "HiHiFarmApp.checkWeatherStatus() -> rainyDayDiscountActive = true"
+                    },
+                    {
+                        title: "2. 首頁最新公告與橫幅變裝",
+                        node: "Home",
+                        desc: "首頁頂部狀態欄與主要視覺 Banner 瞬間套用「雨天應援」版面。今日採果預約關閉，轉為志偉老闆的抱歉溫馨補償說明卡片。",
+                        code: "HomeView.renderRainyBanner() -> Text: '真的很抱歉，今天下雨了... 官網下單全面 9 折！'"
+                    },
+                    {
+                        title: "3. 購物車讀取全域狀態進行折抵",
+                        node: "Cart",
+                        desc: "當遊客下單台灣藍莓放進購物車時，CartController 動態計價器直接讀取 `App.rainyDayDiscountActive`。不自設多餘折扣狀態，計算公式直接依循單一事實來源，免除狀態同步風險。",
+                        code: "CartController.calculateTotal() -> totalBill = App.rainyDayDiscountActive ? (itemSum * 0.9) + 190 : itemSum + 190"
+                    }
+                ]
+            }
+        };
+
+        let currentActiveFlow = null;
+        let currentStepIndex = 0;
+
+        function startFlow(flowId) {
+            currentActiveFlow = flows[flowId];
+            currentStepIndex = 0;
+
+            // 顯示情境面板內容
+            document.getElementById('flow-placeholder').classList.add('hidden');
+            document.getElementById('flow-detail-card').classList.remove('hidden');
+            
+            document.getElementById('flow-title').innerText = currentActiveFlow.title;
+            document.getElementById('flow-desc').innerText = currentActiveFlow.desc;
+
+            // 啟用控制按鈕
+            document.getElementById('btn-flow-prev').disabled = true;
+            document.getElementById('btn-flow-next').disabled = false;
+
+            // 渲染第一個步驟
+            renderStep(0);
+        }
+
+        // 修正後的 renderStep 函數：確保邏輯取反正確，排除情境模擬阻斷並精確渲染 ES6 字串插值
+        function renderStep(index) {
+            if (!currentActiveFlow) return;
+
+            const step = currentActiveFlow.steps[index];
+            
+            // 更新步驟指示器 (正確使用 ES6 模板字面值)
+            document.getElementById('flow-step-num').innerText = `${index + 1} / ${currentActiveFlow.steps.length}`;
+
+            // 更新詳細卡片內容
+            document.getElementById('detail-step-badge').innerText = index + 1;
+            document.getElementById('detail-step-title').innerText = step.title;
+            document.getElementById('detail-step-desc').innerText = step.desc;
+            document.getElementById('detail-step-code').innerText = step.code;
+
+            // 切換回 UML 頁籤，並高亮對應的節點，讓使用者直觀看見控制流
+            switchTab('uml');
+            selectNode(step.node);
+
+            // 更新按鈕狀態
+            document.getElementById('btn-flow-prev').disabled = (index === 0);
+            document.getElementById('btn-flow-next').disabled = (index === currentActiveFlow.steps.length - 1);
+        }
+
+        function nextStep() {
+            if (currentActiveFlow && currentStepIndex < currentActiveFlow.steps.length - 1) {
+                currentStepIndex++;
+                renderStep(currentStepIndex);
+            }
+        }
+
+        function prevStep() {
+            if (currentActiveFlow && currentStepIndex > 0) {
+                currentStepIndex--;
+                renderStep(currentStepIndex);
+            }
+        }
+    </script>
+</body>
+</html>
